@@ -1,0 +1,78 @@
+---
+- hosts: all
+  become: yes
+  vars:
+    config_network_bonds: true
+    config_network_bridges: true
+    config_network_interfaces: true
+    config_network_vlans: true
+    enable_configured_interfaces_after_defining: false
+    dns_nameservers:
+      - '8.8.8.8'
+      - '8.8.4.4'
+    dns_search:
+      - '172.29.236.1'
+    network_interfaces:
+      - name: 'eth0'
+        configure: true
+        method: 'dhcp'
+      - name: 'eth1'
+        configure: true
+        method: 'manual'
+    network_vlans:
+       - name: 'eth1.10'
+         configure: true
+         comment: 'VLAN 10'
+         method: "manual"
+         address:
+         netmask:
+         gateway:
+         vlan_device: 'eth1'
+       - name: 'eth1.20'
+         configure: true
+         comment: 'VLAN 20'
+         method: "manual"
+         address:
+         netmask:
+         gateway:
+         vlan_device: 'eth1'
+    network_bridges:
+      - name: 'br-mgmt'
+        configure: true
+        comment: 'Management Openstack bridge'
+        method: 'static'
+        address: '172.29.236.13'
+        netmask: '255.255.252.0'
+        gateway: 172.29.236.1
+        ports:
+          - 'eth1.10'
+        addl_settings:
+          - 'bridge_stp off'
+          - 'bridge_fd 0'  
+          - 'bridge_waitport 0'
+      - name: 'br-storage'
+        configure: true
+        comment: 'Storage Openstack bridge'
+        method: 'static'
+        address: '172.29.244.13'
+        netmask: '255.255.252.0'
+        ports:
+          - 'eth1.20'
+        addl_settings:
+          - 'bridge_stp off'
+          - 'bridge_fd 0'  
+          - 'bridge_waitport 0'
+  tasks:
+     - name: Configuring network
+       ignore_errors: yes # sadly because our bridging catedral will fail on going up
+       block:
+         - name: Configuring OVS
+           import_role:
+             name: mrlesmithjr.ansible-openvswitch
+         - name : Configuring network interfaces
+           import_role:
+             name: mrlesmithjr.config-interfaces
+     - name: Update apt cache
+       apt: update_cache=yes
+     - name: Upgrade packages
+       apt: upgrade=dist
