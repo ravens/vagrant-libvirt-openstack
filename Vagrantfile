@@ -18,6 +18,7 @@ Vagrant.configure("2") do |config|
     deployhost.vm.network :public_network,
       :dev => "eno1"
 
+    deployhost.vm.provision "file", source: "user_variables.yml", destination: "/tmp/user_variables.yml"
     deployhost.vm.provision "file", source: "openstack_user_config.yml", destination: "/tmp/openstack_user_config.yml"
     deployhost.vm.provision "file", source: "ssh_key", destination: "/tmp/ssh_key"
     deployhost.vm.provision "file", source: "ssh_key.pub", destination: "/tmp/ssh_key.pub"
@@ -35,7 +36,7 @@ Vagrant.configure("2") do |config|
      cd /opt/openstack-ansible && scripts/bootstrap-ansible.sh
      cp -r /opt/openstack-ansible/etc/openstack_deploy /etc/
      cp /tmp/openstack_user_config.yml /etc/openstack_deploy/
-     echo "openstack_service_publicuri_proto: http" >> /etc/openstack_deploy/user_variables.yml
+     cp /tmp/user_variables.yml /etc/openstack_deploy/
      cd /opt/openstack-ansible && ./scripts/pw-token-gen.py --file /etc/openstack_deploy/user_secrets.yml
     SHELL
 

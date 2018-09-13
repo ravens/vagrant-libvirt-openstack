@@ -48,9 +48,9 @@
           - 'eth1.10'
         parameters:
           - param: 'post-up ifconfig $IFACE add'
-            val: '172.29.236.5'
+            val: '172.29.236.10'
           - param: 'pre-down ifconfig $IFACE del' 
-            val: '172.29.236.5' 
+            val: '172.29.236.10' 
         addl_settings:
           - 'bridge_stp off'
           - 'bridge_fd 0'  

@@ -38,9 +38,6 @@ NOTE: At this moment you need to have a router with the IP 172.29.236.1 on the V
 We are using Openstack Rock test deployment configuration here :
 https://docs.openstack.org/project-deploy-guide/openstack-ansible/rocky/deploymenthost.html
 
-We introduced the following changes :
-- we have one virtual IP on the infra1 node in order to cope with some deployment bug at the deploy-infra.yml stage (i.e. if the VIP public/private are the same the deployment is simply not happening)
-
 To start the entire process : 
 ```
 vagrant up
