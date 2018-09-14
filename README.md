@@ -10,10 +10,15 @@ Add another VM to act as a router for the br-mgmt VLAN.
 
 We are using an Ubuntu LTS 18.04 based system with Vagrant (version of vagrantup.com) and libvirt capable user.
 
-We need QEMU/libvirt :
+We need QEMU/libvirt:
 ```
 sudo apt-get install qemu libvirt-bin ebtables dnsmasq qemu-kvm
 sudo adduser $USER libvirt # you need to reload your session 
+```
+
+We need ansible for provisioning:
+```
+sudo apt-get install ansible
 ```
 
 We need vagrant and some plugins
