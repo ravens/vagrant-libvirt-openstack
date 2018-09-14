@@ -12,7 +12,7 @@ We are using an Ubuntu LTS 18.04 based system with Vagrant (version of vagrantup
 
 We need QEMU/libvirt with KVM support:
 ```
-sudo apt-get install qemu libvirt-bin qemu-kvm
+sudo apt-get install qemu libvirt-bin qemu-kvm ebtables dnsmasq # ebtable and dnsmasq are necessary to avoid errors
 sudo adduser $USER libvirt # you need to reload your session 
 ```
 
