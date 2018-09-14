@@ -16,9 +16,11 @@ sudo apt-get install qemu libvirt-bin qemu-kvm
 sudo adduser $USER libvirt # you need to reload your session 
 ```
 
-We need ansible for provisioning:
+We need ansible for provisioning and 2 plugins for configuring the network interfaces of our target VMs:
 ```
 sudo apt-get install ansible
+ansible-galaxy install mrlesmithjr.ansible-openvswitch
+ansible-galaxy install mrlesmithjr.config-interfaces
 ```
 
 And some dependencies for building vagrant plugins written in ruby :
