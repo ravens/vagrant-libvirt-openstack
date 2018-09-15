@@ -16,7 +16,7 @@ sudo apt-get install qemu libvirt-bin qemu-kvm ebtables dnsmasq
 sudo adduser $USER libvirt # you need to reload your session 
 ```
 
-We need ansible for provisioning:
+We need ansible for provisioning and 2 plugins for configuring the network interfaces of our target VMs:
 ```
 sudo apt-get install ansible
 ansible-galaxy install mrlesmithjr.ansible-openvswitch
@@ -65,12 +65,12 @@ After a couple of hours, Openstack admin interface will be listening on IP : htt
 
 ## how this actually works
 
-We use vagrant to generate 4 VM : 
-- a infrastructure node that will basically contains the entire openstack components, from where the deployment is happening
+We use vagrant to generate 3 VMs : 
+- an infrastructure node that will basically contains the entire openstack components, from where the deployment is happening
 - a compute node 
 - a storage node with a 100G disk
 
-The network is mapped automatically to the physical interface 'eno1' of the system I am using using macvlans.
+The network is mapped automatically to the physical interface 'ens18f1' of the system I am using using macvlans.
 
 The VM are generic ubuntu 18.04. We then use some [ansible recipes](https://github.com/mrlesmithjr/ansible-config-interfaces) to configure the network bridges that the openstack-ansible is expected to see. 
 
