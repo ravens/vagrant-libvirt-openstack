@@ -10,15 +10,27 @@ Add another VM to act as a router for the br-mgmt VLAN.
 
 We are using an Ubuntu LTS 18.04 based system with Vagrant (version of vagrantup.com) and libvirt capable user.
 
-We need QEMU/libvirt :
+We need QEMU/libvirt with KVM support:
 ```
-sudo apt-get install qemu libvirt-bin ebtables dnsmasq qemu-kvm
+sudo apt-get install qemu libvirt-bin qemu-kvm ebtables dnsmasq
 sudo adduser $USER libvirt # you need to reload your session 
+```
+
+We need ansible for provisioning:
+```
+sudo apt-get install ansible
+ansible-galaxy install mrlesmithjr.ansible-openvswitch
+ansible-galaxy install mrlesmithjr.config-interfaces
+```
+
+And some dependencies for building vagrant plugins written in ruby :
+```
+sudo apt-get install ruby-dev libvirt-dev
 ```
 
 We need vagrant and some plugins
 ```
-wget https://releases.hashicorp.com/vagrant/2.1.5/vagrant_2.1.5_x86_64.deb
+wget https://releases.hashicorp.com/vagrant/2.1.5/vagrant_2.1.5_x86_64.deb # or more recent
 sudo dpkg -i vagrant_2.1.5_x86_64.deb
 vagrant plugin install vagrant-libvirt
 vagrant plugin install vagrant-reload
@@ -29,7 +41,13 @@ We need to generate a SSH key for the cluster:
 ssh-keygen -f ssh_key -P ""
 ```
 
-You need then to adjust the Vagrantfile to reflect your physical ethernet adapter you wanna use to connect. It is currently configured to 'eno1'.
+You need then to adjust the Vagrantfile to reflect your physical ethernet adapter you wanna use to connect. It is currently configured to 'ens18f1'.
+
+```
+sed -i s/"ens18f1"/"eno1"
+```
+
+You probably want to adjust the memory and CPU requirements to match your machine capabilities, as well as the public IP which is defined at 192.168.50.69.
 
 NOTE: At this moment you need to have a router with the IP 172.29.236.1 on the VLAN 10 for the openstack ansible script to complete his job.
 
@@ -43,11 +61,12 @@ To start the entire process :
 vagrant up
 ```
 
+After a couple of hours, Openstack admin interface will be listening on IP : https://192.168.50.69/
+
 ## how this actually works
 
 We use vagrant to generate 4 VM : 
-- a deployment machine with ansible scripts from openstack-ansible project, currently configured for Rocky
-- a infrastructure node that will basically contains the entire openstack components
+- a infrastructure node that will basically contains the entire openstack components, from where the deployment is happening
 - a compute node 
 - a storage node with a 100G disk
 

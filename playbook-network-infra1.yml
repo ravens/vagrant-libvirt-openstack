@@ -18,7 +18,9 @@
         method: 'dhcp'
       - name: 'eth1'
         configure: true
-        method: 'manual'
+        method: 'static'
+        address: '192.168.50.69'
+        netmask: '255.255.255.0'
     network_vlans:
        - name: 'eth1.10'
          configure: true
@@ -46,11 +48,6 @@
         gateway: 172.29.236.1
         ports:
           - 'eth1.10'
-        parameters:
-          - param: 'post-up ifconfig $IFACE add'
-            val: '172.29.236.10'
-          - param: 'pre-down ifconfig $IFACE del' 
-            val: '172.29.236.10' 
         addl_settings:
           - 'bridge_stp off'
           - 'bridge_fd 0'  

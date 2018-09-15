@@ -4,77 +4,25 @@
 Vagrant.configure("2") do |config|
   config.vm.box_check_update = false
 
-
-   # this node will be responsible for deployment 
-   config.vm.define :deployhost do |deployhost|
-
-    deployhost.vm.box = "generic/ubuntu1604"
-    deployhost.vm.provider :libvirt do |domain|
-      domain.memory = 2048
-      domain.cpus = 2
-    end
-
-
-    deployhost.vm.network :public_network,
-      :dev => "eno1"
-
-    deployhost.vm.provision "file", source: "user_variables.yml", destination: "/tmp/user_variables.yml"
-    deployhost.vm.provision "file", source: "openstack_user_config.yml", destination: "/tmp/openstack_user_config.yml"
-    deployhost.vm.provision "file", source: "ssh_key", destination: "/tmp/ssh_key"
-    deployhost.vm.provision "file", source: "ssh_key.pub", destination: "/tmp/ssh_key.pub"
-
-    deployhost.vm.provision "shell", inline: <<-SHELL
-     apt-get update
-     apt-get -qy dist-upgrade
-     apt-get -qy install aptitude build-essential git ntp ntpdate openssh-server python-dev sudo
-     mkdir -p /root/.ssh
-     cat /tmp/ssh_key.pub >> /root/.ssh/authorized_keys
-     mv /tmp/ssh_key.pub /root/.ssh/id_rsa.pub
-     mv /tmp/ssh_key /root/.ssh/id_rsa 
-     chmod go-rwx /root/.ssh/id_rsa
-     git clone -b 18.0.0.0rc2 https://github.com/openstack/openstack-ansible.git /opt/openstack-ansible
-     cd /opt/openstack-ansible && scripts/bootstrap-ansible.sh
-     cp -r /opt/openstack-ansible/etc/openstack_deploy /etc/
-     cp /tmp/openstack_user_config.yml /etc/openstack_deploy/
-     cp /tmp/user_variables.yml /etc/openstack_deploy/
-     cd /opt/openstack-ansible && ./scripts/pw-token-gen.py --file /etc/openstack_deploy/user_secrets.yml
-    SHELL
-
-
-
-    # configure network VLAN10 as management interface on the management bridge br-mgmt
-    deployhost.vm.provision "ansible" do |ansible|
-    ansible.playbook = "playbook-network-deployhost.yml"
-    end
-
-    deployhost.vm.provision :reload
-
-    deployhost.vm.provision "shell", inline: <<-SHELL
-       cd /opt/openstack-ansible/playbooks &&  openstack-ansible setup-infrastructure.yml --syntax-check
-       cd /opt/openstack-ansible/playbooks &&  openstack-ansible setup-hosts.yml
-       cd /opt/openstack-ansible/playbooks &&  openstack-ansible setup-infrastructure.yml
-       cd /opt/openstack-ansible/playbooks &&  openstack-ansible setup-openstack.yml
-    SHELL
-
-  end
-
   # reproducing https://docs.openstack.org/project-deploy-guide/openstack-ansible/newton/app-config-test.html
   # and following https://docs.openstack.org/project-deploy-guide/openstack-ansible/rocky/deploymenthost.html
   config.vm.define :infra1 do |infra1|
 
     infra1.vm.box = "generic/ubuntu1604"
     infra1.vm.provider :libvirt do |domain|
-      domain.memory = 4096
-      domain.cpus = 2
+      domain.memory = 16384 
+      domain.cpus = 8 
     end
 
     # physical interface
-    #infra1.vm.network :private_network, :ip => "192.168.91.91"
     infra1.vm.network :public_network,
-      :dev => "eno1"
+      :dev => "ens18f1"
 
     # openstack mirror, if needed
     # git clone -b 18.0.0.0rc2 https://git.openstack.org/openstack/openstack-ansible /opt/openstack-ansible
+    infra1.vm.provision "file", source: "user_variables.yml", destination: "/tmp/user_variables.yml"
+    infra1.vm.provision "file", source: "openstack_user_config.yml", destination: "/tmp/openstack_user_config.yml"
+    infra1.vm.provision "file", source: "ssh_key", destination: "/tmp/ssh_key"
     infra1.vm.provision "file", source: "ssh_key.pub", destination: "/tmp/ssh_key.pub"
 
     infra1.vm.provision "shell", inline: <<-SHELL
@@ -86,6 +34,14 @@ Vagrant.configure("2") do |config|
      echo '8021q' >> /etc/modules
      mkdir -p /root/.ssh
      cat /tmp/ssh_key.pub >> /root/.ssh/authorized_keys
+     mv /tmp/ssh_key /root/.ssh/id_rsa 
+     chmod go-rwx /root/.ssh/id_rsa
+     git clone -b stable/rocky https://github.com/openstack/openstack-ansible.git /opt/openstack-ansible
+     cd /opt/openstack-ansible && scripts/bootstrap-ansible.sh
+     cp -r /opt/openstack-ansible/etc/openstack_deploy /etc/
+     cp /tmp/openstack_user_config.yml /etc/openstack_deploy/
+     cp /tmp/user_variables.yml /etc/openstack_deploy/
+     cd /opt/openstack-ansible && ./scripts/pw-token-gen.py --file /etc/openstack_deploy/user_secrets.yml
     SHELL
 
     
@@ -96,6 +52,13 @@ Vagrant.configure("2") do |config|
 
     infra1.vm.provision :reload
 
+    infra1.vm.provision "shell", inline: <<-SHELL
+       cd /opt/openstack-ansible/playbooks &&  openstack-ansible setup-infrastructure.yml --syntax-check
+       cd /opt/openstack-ansible/playbooks &&  openstack-ansible setup-hosts.yml
+       cd /opt/openstack-ansible/playbooks &&  openstack-ansible setup-infrastructure.yml
+       cd /opt/openstack-ansible/playbooks &&  openstack-ansible setup-openstack.yml
+    SHELL
+
   end
   # END OF INFRA1
 
@@ -104,15 +67,14 @@ Vagrant.configure("2") do |config|
 
     compute1.vm.box = "generic/ubuntu1604"
      compute1.vm.provider :libvirt do |domain|
-       domain.memory = 2048
-       domain.cpus = 2
+       domain.memory = 65536 
+       domain.cpus = 28 
        domain.nested = true
        #domain.volume_cache = 'none'
     end
 
-    #compute1.vm.network :private_network, :ip => "192.168.91.92"
     compute1.vm.network :public_network,
-      :dev => "eno1"
+      :dev => "ens18f1"
 
     compute1.vm.provision "file", source: "ssh_key.pub", destination: "/tmp/ssh_key.pub"
 
@@ -142,16 +104,15 @@ Vagrant.configure("2") do |config|
 
     storage1.vm.box = "generic/ubuntu1604"
      storage1.vm.provider :libvirt do |domain|
-       domain.memory = 2048
-       domain.cpus = 1
+       domain.memory = 8192 
+       domain.cpus = 4 
        domain.nested = true
        domain.storage :file, :size => '100G'
        #domain.volume_cache = 'none'
     end
 
-    #storage1.vm.network :private_network, :ip => "192.168.91.93"
     storage1.vm.network :public_network,
-	       :dev => "eno1"
+	       :dev => "ens18f1"
 
     storage1.vm.provision "file", source: "ssh_key.pub", destination: "/tmp/ssh_key.pub"
 
@@ -178,7 +139,5 @@ Vagrant.configure("2") do |config|
 
   end
   # END of STORAGE1
-
-
 
 end

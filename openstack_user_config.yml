@@ -13,7 +13,7 @@ used_ips:
 global_overrides:
   # The internal and external VIP should be different IPs, however they
   # do not need to be on separate networks.
-  external_lb_vip_address: 172.29.236.10
+  external_lb_vip_address: 192.168.50.69 
   internal_lb_vip_address: 172.29.236.11
   tunnel_bridge: "br-vxlan"
   management_bridge: "br-mgmt"
