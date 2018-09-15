@@ -18,9 +18,7 @@
         method: 'dhcp'
       - name: 'eth1'
         configure: true
-        method: 'static'
-        address: '192.168.50.69'
-        netmask: '255.255.255.0'
+        method: 'manual'
     network_vlans:
        - name: 'eth1.10'
          configure: true
@@ -55,7 +53,9 @@
       - name: 'br-vlan'
         configure: true
         comment: 'VLAN Openstack bridge'
-        method: 'manual'
+        method: 'static'
+        address: '192.168.50.69'
+        netmask: '255.255.255.0'
         ports:
           - 'eth1'
         addl_settings:
