@@ -1,10 +1,9 @@
 # Vagrant-based virtual test openstack deployment 
 
-## todo
+## Todos
 
-Fix final phase of deployment which is still failing.
-Add another VM to act as a router for the br-mgmt VLAN. 
-
+- Add another VM to act as a router for the br-mgmt VLAN. 
+Use a 4th small VM as deployment machine. It looks like it does not work so far due to /etc/hosts
 
 ## dependencies
 
@@ -43,8 +42,9 @@ ssh-keygen -f ssh_key -P ""
 
 You need then to adjust the Vagrantfile to reflect your physical ethernet adapter you wanna use to connect. It is currently configured to 'ens18f1'.
 
+To change it to "enp0s25":
 ```
-sed -i s/"ens18f1"/"eno1"
+sed -i s/"ens18f1"/"enp0s25"/g Vagrantfile
 ```
 
 You probably want to adjust the memory and CPU requirements to match your machine capabilities, as well as the public IP which is defined at 192.168.50.69.
