@@ -50,6 +50,16 @@
           - 'bridge_stp off'
           - 'bridge_fd 0'  
           - 'bridge_waitport 0'
+      - name: 'br-vlan'
+        configure: true
+        comment: 'VLAN Openstack bridge'
+        method: 'manual'
+        ports:
+          - 'eth1'
+        addl_settings:
+          - 'bridge_stp off'
+          - 'bridge_fd 0'
+          - 'bridge_waitport 0'
       - name: 'br-storage'
         configure: true
         comment: 'Storage Openstack bridge'
