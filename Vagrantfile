@@ -36,7 +36,7 @@ Vagrant.configure("2") do |config|
      cat /tmp/ssh_key.pub >> /root/.ssh/authorized_keys
      mv /tmp/ssh_key /root/.ssh/id_rsa 
      chmod go-rwx /root/.ssh/id_rsa
-     git clone -b stable/rocky https://github.com/openstack/openstack-ansible.git /opt/openstack-ansible
+     git clone -b 18.0.0.0rc2 https://github.com/openstack/openstack-ansible.git /opt/openstack-ansible
      cd /opt/openstack-ansible && scripts/bootstrap-ansible.sh
      cp -r /opt/openstack-ansible/etc/openstack_deploy /etc/
      cp /tmp/openstack_user_config.yml /etc/openstack_deploy/
