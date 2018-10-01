@@ -61,6 +61,12 @@ Vagrant.configure("2") do |config|
 
     compute1.vm.provision "shell", inline: $linux_server_provisioning
 
+    compute1.vm.provision "shell", inline: <<-SHELL
+     apt install libvirt-bin
+     modprobe kvm_intel nested=1
+     echo "options kvm_intel nested=1" >> /etc/modprobe.d/kvm.conf
+    SHELL
+
     compute1.vm.provision "file", source: "user_variables.yml", destination: "/tmp/user_variables.yml"
     compute1.vm.provision "file", source: "openstack_user_config.yml", destination: "/tmp/openstack_user_config.yml"
     compute1.vm.provision "file", source: "ssh_key", destination: "/tmp/ssh_key"
