@@ -84,7 +84,7 @@ Vagrant.configure("2") do |config|
     compute1.vm.provision :reload
 
     compute1.vm.provision "shell", inline: <<-SHELL
-       cd /opt/openstack-ansible/playbooks &&  openstack-ansible setup-all.yml
+       cd /opt/openstack-ansible/playbooks &&  openstack-ansible setup-everything.yml
     SHELL
 
   end
