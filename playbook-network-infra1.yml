@@ -54,7 +54,7 @@
         configure: true
         comment: 'VLAN Openstack bridge'
         method: 'static'
-        address: '192.168.50.69'
+        address: '192.168.42.69'
         netmask: '255.255.255.0'
         ports:
           - 'eth1'
