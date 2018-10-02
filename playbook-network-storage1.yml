@@ -11,7 +11,7 @@
       - '8.8.8.8'
       - '8.8.4.4'
     dns_search:
-      - '172.29.236.1'
+      - 'openstack'
     network_interfaces:
       - name: 'eth0'
         configure: true
