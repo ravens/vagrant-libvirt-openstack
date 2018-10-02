@@ -8,3 +8,6 @@ haproxy_keepalived_internal_vip_cidr: "172.29.236.11/22"
 haproxy_keepalived_external_interface: br-vlan
 haproxy_keepalived_internal_interface: br-mgmt
 
+# hitting this bug on one server
+# https://bugs.launchpad.net/openstack-ansible/+bug/1748864
+lxc_cache_prep_timeout: 2700
