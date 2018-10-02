@@ -16,6 +16,51 @@ Vagrant.configure("2") do |config|
      cat /tmp/ssh_key.pub >> /root/.ssh/authorized_keys
   SCRIPT
 
+
+  config.vm.define :deploy do |deploy|
+
+    deploy.vm.box = "generic/ubuntu1604"
+    deploy.vm.provider :libvirt do |domain|
+      domain.memory = 1024 
+      domain.cpus = 1 
+    end
+
+    # physical interface
+    deploy.vm.network :public_network,
+      :dev => "enp0s25"
+
+    deploy.vm.provision "file", source: "ssh_key.pub", destination: "/tmp/ssh_key.pub"
+
+    deploy.vm.provision "shell", inline: $linux_server_provisioning
+
+    deploy.vm.provision "ansible" do |ansible|
+      ansible.playbook = "playbook-network-deployhost.yml"
+    end
+
+    deploy.vm.provision "file", source: "user_variables.yml", destination: "/tmp/user_variables.yml"
+    deploy.vm.provision "file", source: "openstack_user_config.yml", destination: "/tmp/openstack_user_config.yml"
+    deploy.vm.provision "file", source: "ssh_key", destination: "/tmp/ssh_key"
+
+    deploy.vm.provision "shell", inline: <<-SHELL 
+     mv /tmp/ssh_key /root/.ssh/id_rsa 
+     chmod go-rwx /root/.ssh/id_rsa
+     git clone -b stable/rocky https://github.com/openstack/openstack-ansible.git /opt/openstack-ansible
+     cd /opt/openstack-ansible && scripts/bootstrap-ansible.sh
+     cp -r /opt/openstack-ansible/etc/openstack_deploy /etc/
+     cp /tmp/openstack_user_config.yml /etc/openstack_deploy/
+     cp /tmp/user_variables.yml /etc/openstack_deploy/
+     cd /opt/openstack-ansible && ./scripts/pw-token-gen.py --file /etc/openstack_deploy/user_secrets.yml
+    SHELL
+
+    deploy.vm.provision :reload
+
+    deploy.vm.provision "shell", inline: <<-SHELL
+       cd /opt/openstack-ansible/playbooks &&  openstack-ansible setup-everything.yml
+    SHELL
+
+  end
+  # END OF DEPLOY
+
   # reproducing https://docs.openstack.org/project-deploy-guide/openstack-ansible/newton/app-config-test.html
   # and following https://docs.openstack.org/project-deploy-guide/openstack-ansible/rocky/deploymenthost.html
   config.vm.define :infra1 do |infra1|
@@ -61,26 +106,12 @@ Vagrant.configure("2") do |config|
 
     compute1.vm.provision "shell", inline: $linux_server_provisioning
 
-    compute1.vm.provision "shell", inline: <<-SHELL
-     apt install libvirt-bin
-     modprobe kvm_intel nested=1
-     echo "options kvm_intel nested=1" >> /etc/modprobe.d/kvm.conf
-    SHELL
+#    compute1.vm.provision "shell", inline: <<-SHELL
+#     apt install libvirt-bin
+#     modprobe kvm_intel nested=1
+#     echo "options kvm_intel nested=1" >> /etc/modprobe.d/kvm.conf
+#    SHELL
 
-    compute1.vm.provision "file", source: "user_variables.yml", destination: "/tmp/user_variables.yml"
-    compute1.vm.provision "file", source: "openstack_user_config.yml", destination: "/tmp/openstack_user_config.yml"
-    compute1.vm.provision "file", source: "ssh_key", destination: "/tmp/ssh_key"
-
-    compute1.vm.provision "shell", inline: <<-SHELL 
-     mv /tmp/ssh_key /root/.ssh/id_rsa 
-     chmod go-rwx /root/.ssh/id_rsa
-     git clone -b stable/rocky https://github.com/openstack/openstack-ansible.git /opt/openstack-ansible
-     cd /opt/openstack-ansible && scripts/bootstrap-ansible.sh
-     cp -r /opt/openstack-ansible/etc/openstack_deploy /etc/
-     cp /tmp/openstack_user_config.yml /etc/openstack_deploy/
-     cp /tmp/user_variables.yml /etc/openstack_deploy/
-     cd /opt/openstack-ansible && ./scripts/pw-token-gen.py --file /etc/openstack_deploy/user_secrets.yml
-    SHELL
 
     # configure network VLAN10 as management interface on the management bridge br-mgmt
     compute1.vm.provision "ansible" do |ansible|
@@ -89,9 +120,7 @@ Vagrant.configure("2") do |config|
 
     compute1.vm.provision :reload
 
-    compute1.vm.provision "shell", inline: <<-SHELL
-       cd /opt/openstack-ansible/playbooks &&  openstack-ansible setup-everything.yml
-    SHELL
+
 
   end
   # END of COMPUTE1
