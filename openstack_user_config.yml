@@ -8,6 +8,8 @@ used_ips:
   - "172.29.236.1,172.29.236.50"
   - "172.29.240.1,172.29.240.50"
   - "172.29.244.1,172.29.244.50"
+  - "172.29.248.1,172.29.248.50"
+
 
 global_overrides:
   # The internal and external VIP should be different IPs, however they
@@ -44,6 +46,15 @@ global_overrides:
         container_interface: "eth12"
         type: "flat"
         net_name: "flat"
+        group_binds:
+          - neutron_linuxbridge_agent
+    - network:
+        container_bridge: "br-vlan"
+        container_type: "veth"
+        container_interface: "eth11"
+        type: "vlan"
+        range: "1:1"
+        net_name: "vlan"
         group_binds:
           - neutron_linuxbridge_agent
     - network:
