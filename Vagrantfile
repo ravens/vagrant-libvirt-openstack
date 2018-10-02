@@ -1,9 +1,17 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+
 Vagrant.configure("2") do |config|
   config.vm.box_check_update = false
-
+  
+  $physical_interface = "enp0s25"
+  $infra_cpu = 4 
+  $infra_ram = 8192
+  $compute_cpu = 2
+  $compute_ram = 2048
+  $storage_cpu = 1
+  $storage_ram = 1024 
 
   $linux_server_provisioning = <<-SCRIPT
      apt-get update
@@ -27,7 +35,7 @@ Vagrant.configure("2") do |config|
 
     # physical interface
     deploy.vm.network :public_network,
-      :dev => "enp0s25"
+      :dev => $physical_interface 
 
     deploy.vm.provision "file", source: "ssh_key.pub", destination: "/tmp/ssh_key.pub"
 
@@ -67,13 +75,13 @@ Vagrant.configure("2") do |config|
 
     infra1.vm.box = "generic/ubuntu1604"
     infra1.vm.provider :libvirt do |domain|
-      domain.memory = 8192 
-      domain.cpus = 4 
+      domain.memory = $infra_ram 
+      domain.cpus = $infra_cpu
     end
 
     # physical interface
     infra1.vm.network :public_network,
-      :dev => "enp0s25"
+      :dev => $physical_interface 
 
     infra1.vm.provision "file", source: "ssh_key.pub", destination: "/tmp/ssh_key.pub"
 
@@ -93,34 +101,24 @@ Vagrant.configure("2") do |config|
 
     compute1.vm.box = "generic/ubuntu1604"
      compute1.vm.provider :libvirt do |domain|
-       domain.memory = 2048 
-       domain.cpus = 2 
+       domain.memory = $compute_ram 
+       domain.cpus = $compute_cpu 
        domain.nested = true
        #domain.volume_cache = 'none'
     end
 
     compute1.vm.network :public_network,
-      :dev => "enp0s25"
+      :dev => $physical_interface 
 
     compute1.vm.provision "file", source: "ssh_key.pub", destination: "/tmp/ssh_key.pub"
 
     compute1.vm.provision "shell", inline: $linux_server_provisioning
 
-#    compute1.vm.provision "shell", inline: <<-SHELL
-#     apt install libvirt-bin
-#     modprobe kvm_intel nested=1
-#     echo "options kvm_intel nested=1" >> /etc/modprobe.d/kvm.conf
-#    SHELL
-
-
-    # configure network VLAN10 as management interface on the management bridge br-mgmt
     compute1.vm.provision "ansible" do |ansible|
       ansible.playbook = "playbook-network-compute1.yml"
     end
 
     compute1.vm.provision :reload
-
-
 
   end
   # END of COMPUTE1
@@ -130,14 +128,14 @@ Vagrant.configure("2") do |config|
 
     storage1.vm.box = "generic/ubuntu1604"
      storage1.vm.provider :libvirt do |domain|
-       domain.memory = 1024 
-       domain.cpus = 1
+       domain.memory = $storage_ram 
+       domain.cpus = $storage_cpu 
        domain.storage :file, :size => '100G'
        #domain.volume_cache = 'none'
     end
 
     storage1.vm.network :public_network,
-	       :dev => "enp0s25"
+	       :dev => $physical_interface 
 
     storage1.vm.provision "file", source: "ssh_key.pub", destination: "/tmp/ssh_key.pub"
 
@@ -153,7 +151,6 @@ Vagrant.configure("2") do |config|
     end
 
     storage1.vm.provision :reload
-
 
   end
   # END of STORAGE1
