@@ -1,5 +1,9 @@
 # Vagrant-based virtual test openstack deployment 
 
+## Status : DEPRECATED
+
+Check https://github.com/ravens/vagrant-lab-openstack for more active lab experiments into running Openstack into VM before trying on baremetal.
+
 ## Todos
 
 - Add another VM to act as a router for the br-mgmt VLAN. 
